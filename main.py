@@ -54,7 +54,7 @@ def getanswer(qid, token):
     detail_data = json.loads(resp.text)
     return detail_data["data"]["answer"]
 
-def getanswer(token, stuid):
+def getexamanswer(token, stuid):
     url = "http://124.160.107.92:3334/api/contest/paper/getUserDetail"
     headers = {
         "Content-Type": "application/json",
@@ -64,7 +64,9 @@ def getanswer(token, stuid):
         "id": stuid
     }
     resp = requests.post(url, headers=headers, json=data)
-    return json.loads(resp.text)['data']['content']
+    data = json.loads(resp.text)['data']['content']
+    res = str(data).replace(',"isAuto":true,"getScore":null', '').replace(',"trueAnswer":null,"isTrue":null', '')
+    return res
 
 def addtmp(token, ans, id, remainat):
     url = "http://124.160.107.92:3334/api/contest/paper/addTmp"
@@ -73,18 +75,21 @@ def addtmp(token, ans, id, remainat):
         "Authorization": token
     }
     data = {
-        "content": ans,
+        "content": str(ans),
         "id": id,
-        remainat: remainat
+        "remainingAt": remainat
     }
-    resp = requests.post(url, headers=headers, json=data)
-    if resp.text == '{"code":10000,"msg":"成功","data":{"result":true},"error":"","succeed":true}':
+    resp = requests.post(url, headers=headers, data=bytes(json.dumps(data, ensure_ascii=False).encode('utf-8')))
+    if resp.text == '{"code":10000,"msg":"成功","data":null,"error":"","succeed":true}':
         print("操作成功！")
         print("注意：为了避免雷同，请务必修改答案，再进行手动提交！")
         print("注意：为了避免雷同，请务必修改答案，再进行手动提交！")
         print("注意：为了避免雷同，请务必修改答案，再进行手动提交！")
         print("注意：为了避免雷同，请务必修改答案，再进行手动提交！")
         print("注意：为了避免雷同，请务必修改答案，再进行手动提交！")
+    else:
+        print("操作失败！" + resp.text)
+        print("请保留窗口并联系作者！")
 
 def quickpractice(tk):
     print("欢迎使用普通积分模式")
@@ -105,7 +110,7 @@ def quickexam(tk):
     examid = input("请输入考试ID（必须联系作者获取！）：")
     remainat = input("请输入神秘代码（必须联系作者获取！）：")
     print("=======================================")
-    ans = getanswer(tk, int(stuid))
+    ans = getexamanswer(tk, int(stuid))
     addtmp(tk, ans, int(examid), int(remainat))
 
 
